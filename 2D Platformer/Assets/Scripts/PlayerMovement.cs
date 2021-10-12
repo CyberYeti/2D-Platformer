@@ -6,12 +6,17 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] float horizontalSpeed = 3;
     [SerializeField] float runSpeedMultiplier = 2f;
+    [SerializeField] Transform groundCheckCollider;
+    [SerializeField] LayerMask groundLayer;
     
     private Rigidbody2D rb;
     private Animator animator;
     private float horizontalValue;
+    private bool isGrounded = false;
     private bool isFacingRight = true;
     private bool isRunning = false;
+
+    const float GROUND_CHECK_RADIUS = 0.2f;
 
     void Awake()
     {
@@ -36,12 +41,24 @@ public class PlayerMovement : MonoBehaviour
 
     private void FixedUpdate()
     {
+        GroundCheck();
         Move(horizontalValue);
+    }
+
+    private void GroundCheck()
+    {
+        isGrounded = false;
+        //Check if ground check collider is colliding with other 2D colliders in the ground layer
+        Collider2D[] colliders = Physics2D.OverlapCircleAll(groundCheckCollider.position, GROUND_CHECK_RADIUS, groundLayer);
+        if (colliders.Length > 0)//Grounded
+        {
+            isGrounded = true;
+        }
     }
 
     private void Move(float _horizontalDirection)
     {
-        float newHorizontalVelocity = _horizontalDirection * horizontalSpeed * Time.deltaTime * 100;
+        float newHorizontalVelocity = _horizontalDirection * horizontalSpeed * Time.fixedDeltaTime * 100;
         //if you are running multiply speed by runSpeedMultiplier
         if (isRunning)
         {

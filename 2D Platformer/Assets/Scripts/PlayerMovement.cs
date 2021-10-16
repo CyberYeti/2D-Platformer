@@ -6,6 +6,7 @@ public class PlayerMovement : MonoBehaviour
 {
     [SerializeField] float horizontalSpeed = 3;
     [SerializeField] float runSpeedMultiplier = 2f;
+    [SerializeField] float jumpPower = 100f;
     [SerializeField] Transform groundCheckCollider;
     [SerializeField] LayerMask groundLayer;
     
@@ -15,6 +16,7 @@ public class PlayerMovement : MonoBehaviour
     private bool isGrounded = false;
     private bool isFacingRight = true;
     private bool isRunning = false;
+    private bool jumpFlag = false;
 
     const float GROUND_CHECK_RADIUS = 0.2f;
 
@@ -33,16 +35,25 @@ public class PlayerMovement : MonoBehaviour
         {
             isRunning = true;
         }
-        if (Input.GetKeyUp(KeyCode.LeftControl)) //LShift up disable running
+        else if (Input.GetKeyUp(KeyCode.LeftControl)) //LShift up disable running
         {
             isRunning = false;
+        }
+
+        if (Input.GetKeyDown(KeyCode.Space)) //Space Pressed, Jump
+        {
+            jumpFlag = true;
+        }
+        else if (Input.GetKeyUp(KeyCode.Space)) //Space Released, Stop Jump
+        {
+            jumpFlag = false;
         }
     }
 
     private void FixedUpdate()
     {
         GroundCheck();
-        Move(horizontalValue);
+        Move(horizontalValue, jumpFlag);
     }
 
     private void GroundCheck()
@@ -56,8 +67,17 @@ public class PlayerMovement : MonoBehaviour
         }
     }
 
-    private void Move(float _horizontalDirection)
+    private void Move(float _horizontalDirection, bool _jumpFlag)
     {
+        // if player is grounded and is pressing space jump
+        if (isGrounded && _jumpFlag)
+        {
+            isGrounded = false;
+            _jumpFlag = false;
+            rb.AddForce(new Vector2(0, jumpPower));
+        }
+
+        #region Move And Run
         float newHorizontalVelocity = _horizontalDirection * horizontalSpeed * Time.fixedDeltaTime * 100;
         //if you are running multiply speed by runSpeedMultiplier
         if (isRunning)
@@ -82,5 +102,6 @@ public class PlayerMovement : MonoBehaviour
             transform.localScale = new Vector3(1, 1, 1);
             isFacingRight = true;
         }
+        #endregion
     }
 }
